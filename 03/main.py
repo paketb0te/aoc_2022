@@ -18,3 +18,20 @@ with open(INPUT_FILE, mode="r") as infile:
         prio_sum += prio_map[next(iter(item_set))]
 
 print(f"Part 1: {prio_sum}")
+
+# Part 2
+
+badge_prio_sum = 0
+elf_group = []
+
+with open(INPUT_FILE, mode="r") as infile:
+    for line in infile:
+        line = line.strip()
+        elf_group.append(set(line))
+        if len(elf_group) >= 3:
+            badge_set = set.intersection(*elf_group)
+            badge_prio_sum += prio_map[next(iter(badge_set))]
+            elf_group.clear()
+
+
+print(f"Part 2: {badge_prio_sum}")
