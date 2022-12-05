@@ -11,7 +11,7 @@ instruction_lines: list[str] = []
 with open(INPUT_FILE, mode="r") as infile:
     for line in infile:
         line = line.strip("\n")
-        # Marks the break between map and instructions.
+        # An empty line marks the break between map and instructions.
         if not line:
             reading_map = False
             continue
@@ -22,39 +22,50 @@ with open(INPUT_FILE, mode="r") as infile:
         else:
             instruction_lines.append(line)
 
-# Remove '[', ']' and ' ' and drop the bottom row (numbering).
-map_lines = [line[1::4] for line in map_lines[:-1]]
-# split into single characters
-map_lists = [list(line) for line in map_lines]
+# We only care about the characters, not the whitespace and brackets.
+# -> Parsing only every 4th character drops all '[', ']' and ' '.
+map_lines = [line[1::4] for line in map_lines]
+
+# Split into list of single characters and drop the bottom row
+# because it contains only the numbers of the stacks - we will use indices instead.
+map_lists = [list(line) for line in map_lines[:-1]]
+
 # Zip up the lists in reverse order so the "bottom crate" will be the first element in each stack.
-# This allows us to easier use deque because we can just append() and pop().
-crate_map = [deque(stack) for stack in zip(*map_lists[::-1])]
-# Remove the "air" above crates (elements not containg a character).
-for stack in crate_map:
+# This allows us to easier use deque because we can just append() and pop()
+# instead of appendleft() and popleft().
+crate_stacks = [deque(stack) for stack in zip(*map_lists[::-1])]
+
+# Remove the "air" above crates (any elements not containg a character).
+for stack in crate_stacks:
     while not stack[-1].isalpha():
         stack.pop()
 
+# Extract the moving instructions as lists of [count, source-stack, destination-stack].
 instructions = [line.split()[1::2] for line in instruction_lines]
-instructions = [tuple(int(char) for char in instr) for instr in instructions]
+# Convert the instructions to lists of ints.
+instructions = [[int(char) for char in instr] for instr in instructions]
+# Remember to subtract 1 from src / dst because we want to use them as indices!
+instructions = [[sum(e) for e in zip(instr, [0, -1, -1])] for instr in instructions]
 
 # Part 1
-crate_map_part_1 = deepcopy(crate_map)
+crate_stacks_part_1 = deepcopy(crate_stacks)
 for cnt, src, dst in instructions:
-    for i in range(cnt):
-        crate = crate_map_part_1[src - 1].pop()
-        crate_map_part_1[dst - 1].append(crate)
+    for _ in range(cnt):
+        crate = crate_stacks_part_1[src].pop()
+        crate_stacks_part_1[dst].append(crate)
 
-top_crates_1 = "".join(stack.pop() for stack in crate_map_part_1)
+top_crates_1 = "".join(stack.pop() for stack in crate_stacks_part_1)
 
 # Part 2
-crate_map_part_2 = deepcopy(crate_map)
+crate_stacks_part_2 = deepcopy(crate_stacks)
 for cnt, src, dst in instructions:
     crates: deque[str] = deque()
-    for i in range(cnt):
-        crates.append(crate_map_part_2[src - 1].pop())
-    crate_map_part_2[dst - 1].extend(reversed(crates))
+    for _ in range(cnt):
+        crates.append(crate_stacks_part_2[src].pop())
+    for _ in range(cnt):
+        crate_stacks_part_2[dst].append(crates.pop())
 
-top_crates_2 = "".join(stack.pop() for stack in crate_map_part_2)
+top_crates_2 = "".join(stack.pop() for stack in crate_stacks_part_2)
 
 print(f"Part 1: {top_crates_1}")
 print(f"Part 2: {top_crates_2}")
