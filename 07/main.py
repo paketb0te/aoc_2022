@@ -113,6 +113,11 @@ while lines:
 
 sum_small_child_nodes(node=ROOT)
 
+TOTAL_SPACE = 70000000
+NEEDED_SPACE = 30000000
+UNUSED_SPACE = TOTAL_SPACE - get_size(node=ROOT)
+NEED_TO_DELETE = NEEDED_SPACE - UNUSED_SPACE
+
 
 print(f"Part 1: {SMALL_DIRS_SUM}")
 print(f"Part 2: {2}")
