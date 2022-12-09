@@ -43,7 +43,34 @@ for j in range(0, grid.shape[1], 1):
         visibility[i][j] |= visible
         highest = max(tree, highest)
 
-# print(visibility)
+
+def get_scenic_score(grid: np.ndarray, i: int, j: int, i_step: int, j_step: int) -> int:
+    tree_height = grid[i][j]
+    score = 0
+    while 0 <= i < grid.shape[0] and 0 <= j < grid.shape[1]:
+        i += i_step
+        j += j_step
+        try:
+            if i < 0 or j < 0:
+                raise IndexError
+            curr_height = grid[i][j]
+            score += 1
+            if curr_height >= tree_height:
+                break
+        except IndexError:
+            break
+    return score
+
+
+scenic_scores = np.full(grid.shape, 1, dtype=int)
+
+for i in range(grid.shape[0]):
+    for j in range(grid.shape[1]):
+        for i_step, j_step in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+            scenic_scores[i][j] *= get_scenic_score(
+                grid=grid, i=i, j=j, i_step=i_step, j_step=j_step
+            )
+
 
 print(f"Part 1: {np.sum(visibility)}")
-print(f"Part 2: {2}")
+print(f"Part 2: {np.max(scenic_scores)}")
